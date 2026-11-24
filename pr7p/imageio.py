@@ -11,7 +11,7 @@ import os
 import time
 from dataclasses import dataclass, field
 
-from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+from PySide6.QtCore import QBuffer, QByteArray, QFile, QIODevice
 from PySide6.QtGui import QImage, QImageReader, QImageWriter
 
 from . import folder
@@ -155,14 +155,22 @@ def write(img: QImage, path: str, quality: int = 90, exif_from: str | None = Non
             else:
                 pil.save(tmp, fmt.upper() if fmt != "avif" else "AVIF", quality=int(quality))
         else:
-            w = QImageWriter(tmp, QByteArray(("tiff" if fmt == "tif" else fmt).encode()))
-            if fmt == "webp":
-                w.setQuality(int(quality))
-            if fmt == "gif" or not w.write(img):
-                if fmt == "gif":     # Qt reads GIF but doesn't write it
-                    _flatten(to_pil(img)).convert("P", palette=1, colors=256).save(tmp, "GIF")
-                else:
-                    raise OSError(w.errorString())
+            if fmt == "gif":         # Qt reads GIF but doesn't write it
+                _flatten(to_pil(img)).convert("P", palette=1, colors=256).save(tmp, "GIF")
+            else:
+                # Our own file, closed before the move: a QImageWriter given a file name keeps it open until the
+                # writer is gone, and Windows won't move an open file.
+                fh = QFile(tmp)
+                if not fh.open(QIODevice.OpenModeFlag.WriteOnly):
+                    raise OSError(fh.errorString())
+                w = QImageWriter(fh, QByteArray(("tiff" if fmt == "tif" else fmt).encode()))
+                if fmt == "webp":
+                    w.setQuality(int(quality))
+                ok = w.write(img)
+                error = w.errorString()
+                fh.close()
+                if not ok:
+                    raise OSError(error)
         os.replace(tmp, path)
     finally:
         if os.path.exists(tmp):
