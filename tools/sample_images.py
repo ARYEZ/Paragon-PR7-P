@@ -113,6 +113,27 @@ def photo(seed: int, kind: str | None = None, w: int = 1800, h: int = 1200) -> Q
     return img
 
 
+def with_exif(path: Path, orientation: int = 1, camera: tuple[str, str] = ("FUJIFILM", "X-T5")) -> Path:
+    """Give a JPEG camera details (Pillow): make / model, lens, date taken, exposure 1/250 s, f/5.6, ISO 200, 35 mm,
+    flash off, GPS, and an orientation tag (6 = the camera was turned: show it turned a quarter right)."""
+    from PIL import Image
+    from PIL.TiffImagePlugin import IFDRational as Fraction   # EXIF fractions must be Pillow's own type
+    with Image.open(path) as im:
+        im.load()
+        pixels = im.copy()
+    ex = Image.Exif()
+    ex[0x010F], ex[0x0110], ex[0x0112] = camera[0], camera[1], orientation
+    ex[0x0132] = "2026:10:03 18:41:07"
+    sub = ex.get_ifd(0x8769)
+    sub.update({0x9003: "2026:10:03 18:41:07", 0x829A: Fraction(1, 250), 0x829D: Fraction(56, 10), 0x8827: 200,
+                0x920A: Fraction(35, 1), 0xA405: 53, 0x9209: 16, 0xA434: "XF16-55mmF2.8 R LM WR"})
+    gps = ex.get_ifd(0x8825)
+    gps.update({1: "N", 2: (Fraction(54), Fraction(35), Fraction(503, 10)), 3: "W",
+                4: (Fraction(5), Fraction(55), Fraction(484, 10))})
+    pixels.save(path, "JPEG", quality=90, exif=ex)
+    return path
+
+
 def folder(out: Path, count: int = 12, size: tuple[int, int] = (1800, 1200)) -> list[Path]:
     """A folder of pictures named like a camera's, some upright, one PNG."""
     out.mkdir(parents=True, exist_ok=True)
