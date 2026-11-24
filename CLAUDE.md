@@ -13,6 +13,8 @@ it runs on Linux for tests. The owner writes Python; explain the why of changes.
   JPEG 2000 / PCX / PSD), `info` (Pillow for format, bits, dpi, JPEG subsampling), `write` (temp file then replace;
   JPEG and AVIF through Pillow, JPEG keeps EXIF with Orientation reset to 1; GIF through Pillow; the rest QImageWriter),
   `to_pil` / `from_pil`. `pr7p/exif.py`: camera details for the Information dialog (IFDRational for test EXIF).
+- Windows lesson: never hand QImageWriter a file name and then move the file: it keeps the file open until the writer
+  is gone, and Windows won't move an open file. `imageio.write` opens, writes and closes a QFile itself first.
 - `pr7p/edit.py`: the Image menu as pure functions QImage -> QImage (Undo is a list of images, last 20 kept).
 - `pr7p/viewer.py`: `ImageView` (QAbstractScrollArea): FIT / FIT_BIG / percent, `fit_scale`, `step_zoom`, IrfanView's
   mouse (wheel emits `step`, Ctrl+wheel zooms at the pointer, left drag = selection in image pixels, right drag pans,
