@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDia
                                QLineEdit, QMainWindow, QMenu, QMessageBox, QPushButton, QSlider, QSpinBox,
                                QStackedWidget, QVBoxLayout, QWidget)
 
+from . import finish
 from . import __version__, edit, exif, files, imageio, settings, theme, widgets
 from .folder import IMAGE_EXTS, Folder, is_image
 from .thumbs import Grid, Strip, Thumbs
@@ -807,6 +808,7 @@ class MainWindow(QMainWindow):
 
     def set_finish(self, name: str):
         theme.set_finish(name)
+        finish.set(theme.FINISH)                 # every family app follows (finish.py)
         settings.set("finish", name)
         apply_look(QApplication.instance())
         for gap in self.toolbar.findChildren(QFrame, "gap"):

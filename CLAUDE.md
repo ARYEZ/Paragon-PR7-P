@@ -33,6 +33,8 @@ it runs on Linux for tests. The owner writes Python; explain the why of changes.
   `tools/verify_install.py installed` runs the installed exe on JPEG / WebP / TIFF / GIF / AVIF and an EXIF-turned photo.
 - Updates: `pr7p/updates.py` (no Qt; GitHub's public releases/latest, User-Agent names only the app, installer asset `PR7-P-Setup-*.exe`, run with /SILENT /relaunch=1) and `update_ui.py` (once-a-day check from app.py, the menu's Check for Updates, UpdateDialog; settings updates/auto|last|skip; `notify` for tests). The installer's [Code] Relaunch starts PR7-P again only for /relaunch=1. Same files in every family app (PR7-W's update_ui imports PyQt6): keep them in step. With PR7-U (the family installer) installed, update_ui offers it (`_family_app`, `open_family`; `answer` for tests); every app has the shared family.py with all ten AppIds. `family.py`: the other family apps by their permanent AppIds (uninstall InstallLocation).
 
+- `pr7p/finish.py` (no Qt): the family's finish (OBSIDIAN / AURORA), one choice for every app: HKCU\Software\Paragon\Family "Finish" (a file elsewhere; PARAGON_FAMILY_FILE in tests, conftest). `finish.start` at start-up, `set_finish` saves it, app.py's 2 s timer `finish.follow`s another app's switch. The same file in every family app: keep them in step.
+
 ## The look (family rules)
 
 - Theme is PR7-R's (OBSIDIAN + AURORA via `theme.set_finish`). Colours: the family's only (hues ~318 -> 0 -> 42 deg,
